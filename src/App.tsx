@@ -1,26 +1,35 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Recipes } from "./pages/recipes/recipes";
+import { List } from "./pages/list/list";
+import { Favorite } from "./pages/favorite/favorite";
+import { Setting } from "./pages/setting/setting";
+import { StoreProvider } from "./context/context";
+import { NavBar } from "./components/navbar/Navbar";
+import { Background } from "./components/background/background";
+import { MainCard } from "./components/mainCard/mainCard";
 
-function App() {
+
+
+export const App: React.VFC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <StoreProvider>
+      <HashRouter>
+        <Background>
+          <NavBar />
+          <MainCard>
+            <Routes>
+              <Route path="/" element={<Navigate to="/list/add" />} />
+              <Route path="/list/add/*" element={<List />} />
+              <Route path="/recipes/*" element={<Recipes />} />
+              <Route path="/favorite" element={<Favorite />} />
+              <Route path="/setting" element={<Setting/>} />
+            </Routes>
+          </MainCard>
+        </Background>
+      </HashRouter>
+    </StoreProvider>
   );
-}
+};
 
 export default App;
