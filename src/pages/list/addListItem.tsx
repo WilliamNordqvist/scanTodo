@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { Box, List } from "@mui/material";
 import { Scanner } from "../../components/scanner/scanner";
-import { useStore } from "../../context/context";
 import { Header } from "../../components/header/header";
 import { Input } from "../../components/input/input";
 import { Loading } from "../../components/loading/loading";
@@ -13,61 +12,92 @@ import { Check } from "../../components/icons/check";
 import { ListRow } from "../../components/listRow/listRow";
 import { generateId } from "../../utils/generateId";
 import { Button } from "../../components/button/button";
-import { TList, TListItem } from "../../types";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { database } from "../../api/api";
+import { RawTlistFull, RawTlist } from "../../types";
 
 export const AddListItem: React.VFC = () => {
-  const { id: ListId } = useParams<{ id: string }>();
+  const { id } = useParams();
+  const listId = id as string;
   const [isModalOpen, toggleModal] = useState(false);
-  const [selectedList, selectList] = useState<TList>();
   const [inputValue, setInputValue] = useState<string>("");
-
-  const {
-    list: {
-      createListItems,
-      allLists,
-      checkListItem,
-      deleteList,
-      deleteListItem,
-    },
-  } = useStore();
   const navigate = useNavigate();
-
-  const checkedItems =
-    selectedList?.items.filter((item) => item.isChecked) || [];
-
-  const addItem = () => {
-    const newListItem: TListItem = {
-      name: inputValue,
-      id: generateId(),
-      isChecked: false,
-    };
-
-    createListItems(ListId!, newListItem);
-    setInputValue("");
-  };
+  const { data, error } = useQuery(listId, () => database.getList(listId));
+  const { mutate: updateItem } = useMutation(database.update);
+  const { mutate: onDelete } = useMutation(database.delete);
+  const { mutate: addListItem } = useMutation(database.createListItem, {
+    onError: () => navigate("/list/add"),
+  });
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (allLists) {
-      const list = allLists.filter((list) => list.id === ListId)[0];
-      if (!list && allLists.length > 0) navigate("/list/add");
-      selectList(list);
-    }
+    if (error) navigate("/list/add");
+  }, [error, navigate]);
 
-    if (!allLists) navigate("/list/add");
-  }, [ListId, allLists, navigate]);
-
-  if (!allLists || !selectedList) {
+  if (!data) {
     return <Loading />;
   }
+
+  const onCheckItem = (id: number) => {
+    const newdata = data.map((list) => {
+      if (list.itemId === id) {
+        return {
+          ...list,
+          isChecked: !list.isChecked,
+        };
+      }
+      return list;
+    });
+
+    queryClient.setQueryData(listId, newdata);
+    updateItem(newdata.find(({ itemId }) => itemId === id) as RawTlistFull);
+  };
+
+  const onAddItem = () => {
+    const [firstRow, ...restOfRows] = data;
+    const newListItem = {
+      name: "",
+      items: inputValue,
+      listId: firstRow.listId,
+      isChecked: false,
+      itemId: generateId(),
+    };
+
+    queryClient.setQueryData(listId, [firstRow, newListItem, ...restOfRows]);
+    addListItem(newListItem);
+    setInputValue("");
+  };
 
   if (isModalOpen) {
     return <Scanner onScan={setInputValue} onClose={toggleModal} />;
   }
 
-  const { items: ListItems, name: ListName } = selectedList;
+  const [first, ...rest] = data;
+  const checkedItems = rest.filter(({ isChecked }) => isChecked);
+
+  const onDeleteListItem = () => {
+    const newData = data.filter((item) => !checkedItems.includes(item));
+    queryClient.setQueryData(listId, newData);
+    onDelete({
+      itemId: checkedItems.map((item) => Number(item.itemId)),
+    });
+  };
+
+  const onDeleteList = () => {
+    onDelete({ listId: Number(listId) });
+    navigate("/list/add");
+    queryClient.setQueryData<{ [id: number]: RawTlist[] }[]>(
+      "allList",
+      (oldData) => {
+        return oldData?.filter((list) => Object.keys(list)[0] !== listId) as {
+          [id: number]: RawTlist[];
+        }[];
+      }
+    );
+  };
 
   const inputIcon = inputValue ? (
-    <AddIcon onClick={addItem} />
+    <AddIcon onClick={onAddItem} />
   ) : (
     <CameraIcon onClick={() => toggleModal(true)} />
   );
@@ -81,27 +111,28 @@ export const AddListItem: React.VFC = () => {
     >
       <Box height="auto" overflow="scroll">
         <Header noMargin as="h2">
-          {ListName}
+          {first.name}
         </Header>
         <Input
           value={inputValue}
           setValue={setInputValue}
-          onEnter={addItem}
+          onEnter={onAddItem}
           icon={inputIcon}
         />
         <Box>
           <List>
-            {ListItems.map((listItem) => (
+            {rest.map(({ itemId, isChecked, items }) => (
               <ListRow
-                key={listItem.id}
+                key={itemId}
                 icon={
                   <Check
-                    defVal={listItem.isChecked}
-                    onClick={() => checkListItem(ListId!, listItem)}
+                    isChecked={isChecked}
+                    defVal={isChecked}
+                    onClick={() => onCheckItem(Number(itemId))}
                   />
                 }
               >
-                {listItem.name}
+                {items}
               </ListRow>
             ))}
           </List>
@@ -110,11 +141,9 @@ export const AddListItem: React.VFC = () => {
 
       <Box sx={{ width: "50%", mx: "auto" }} mt={2}>
         {checkedItems.length > 0 ? (
-          <Button onClick={() => deleteListItem(ListId!, checkedItems)}>
-            Update List
-          </Button>
+          <Button onClick={onDeleteListItem}>Update List</Button>
         ) : (
-          <Button onClick={() => deleteList(ListId!)} buttontype="delete">
+          <Button onClick={onDeleteList} buttontype="delete">
             Delete List
           </Button>
         )}

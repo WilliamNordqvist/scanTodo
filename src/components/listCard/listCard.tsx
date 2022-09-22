@@ -3,7 +3,9 @@ import { ListItem as ListItemMUI } from "@mui/material";
 import { DeleteIcon } from "../icons/deleteIcon";
 import styled from "styled-components";
 import { Link as LinkMUI } from "react-router-dom";
-import { TList } from "../../types";
+import { useMutation, useQueryClient } from "react-query";
+import { database } from "../../api/api";
+import { RawTlist } from "../../types";
 
 const StyledListCard = styled(ListItemMUI)`
   && {
@@ -15,10 +17,6 @@ const StyledListCard = styled(ListItemMUI)`
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   margin: 0 ${({ theme }) => theme.sizes.xsmall}
     ${({ theme }) => theme.sizes.xsmall} 0;
-
-    &: active { 
-      box-shadow: rgba(50, 50, 93, 0.25) 3px 3px 6px 0px inset, rgba(0, 0, 0, 0.3) -3px -3px 6px 1px inset;
-    }
 `;
 
 const Wrapper = styled.div`
@@ -27,7 +25,7 @@ const Wrapper = styled.div`
   justify-content: space-between;
   overflow: hidden;
   height: 100%;
-  width:100%;
+  width: 100%;
 
   button {
     margin: auto;
@@ -38,32 +36,36 @@ const Wrapper = styled.div`
 const Link = styled(LinkMUI)`
   text-decoration: none;
   text-align: center;
-  height:100%;
+  height: 100%;
 
   p {
     margin: 0;
-    color: ${({ theme }) => theme.color.secondaryTextColor};;
+    color: ${({ theme }) => theme.color.secondaryTextColor};
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 `;
 
-type TListItem = {
-  onDelete: (id: string) => void;
-  list: TList;
-};
+export const ListCard: React.VFC<{ list: RawTlist[] }> = ({ list }) => {
+  const { name, listId } = list[0];
+  const { mutate:onDeleteList } = useMutation(database.delete);
+  const queryClient = useQueryClient();
 
-export const ListCard: React.VFC<TListItem> = ({ list, onDelete }) => {
-  const { name, id, items } = list;
+  const deleteList = () => {
+    onDeleteList({ listId });
+    queryClient.setQueryData<{[id: number]: RawTlist[]}[]>("allList", (oldData) => {
+      return oldData?.filter((list) => Number(Object.keys(list)) !== listId) as {[id: number]: RawTlist[]}[];
+    });
+  };
   return (
     <StyledListCard>
       <Wrapper>
-        <Link key={id} to={id}>
+        <Link key={listId} to={JSON.stringify(listId)}>
           <p>{name}</p>
-          <p>Items: {items?.length}</p>
+          <p>Items: {list.length -1}</p>
         </Link>
-        <DeleteIcon onClick={() => onDelete(id)} />
+        <DeleteIcon onClick={deleteList} />
       </Wrapper>
     </StyledListCard>
   );

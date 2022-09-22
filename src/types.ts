@@ -53,29 +53,34 @@ export type TProduct = {
 }
 
 export type TRecipe = {
-    Title?:string,
-    Ingredients?:string[],
+    Title:string,
+    Ingredients:string[],
     ErrorMessage?:string,
     PortionOptions?:string[],
     Instructions?:string[],
 }
 
-export type TListItem = {
-    name: string;
-    id: string;
-    isChecked:boolean;
-  }
-  
-  export type TList = {
-    name: string;
-    id: string;
-    items: TListItem[];
-  };
+export type RawTlist = {
+    name: string, 
+    items: string,
+    listId: number,
+}
+export type RawTlistFull = {
+    name: string, 
+    items: string,
+    listId: number,
+    isChecked:boolean,
+    itemId:number | string
+}
 
   export type TFavRec = {
     name:string,
     id:string;
   }
+
+  export type CacheData = {
+    [id:number]:RawTlist[]
+  }[]
 
 export type TRecipeResponse = {
     Id:                     number;
@@ -151,5 +156,6 @@ export type TRecipeResponse = {
 export enum URL_TYPES {
     BASE = 'https://api.allorigins.win/get?url=',
     BAR_CODE = 'https://handla.api.ica.se/api/upclookup?upc=',
-    RECIPE = 'https://handla.api.ica.se/api/recipes/recipe/'
+    RECIPE = 'https://handla.api.ica.se/api/recipes/recipe/',
+    GOOGLE_SHEET = 'https://script.google.com/macros/s/AKfycbwCKDMHsOnqdItDKIXtO07B4TVo70aGSEQ11grX1lN5AtwBEnayrD-f07Lr_IPA3xsY/exec'
 }

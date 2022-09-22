@@ -8,26 +8,28 @@ import { StoreProvider } from "./context/context";
 import { NavBar } from "./components/navbar/Navbar";
 import { Background } from "./components/background/background";
 import { MainCard } from "./components/mainCard/mainCard";
-
-
+import { QueryClient, QueryClientProvider, useQuery } from "react-query";
 
 export const App: React.VFC = () => {
+  const queryClient = new QueryClient();
   return (
     <StoreProvider>
-      <HashRouter>
-        <Background>
-          <NavBar />
-          <MainCard>
-            <Routes>
-              <Route path="/" element={<Navigate to="/list/add" />} />
-              <Route path="/list/add/*" element={<List />} />
-              <Route path="/recipes/*" element={<Recipes />} />
-              <Route path="/favorite" element={<Favorite />} />
-              <Route path="/setting" element={<Setting/>} />
-            </Routes>
-          </MainCard>
-        </Background>
-      </HashRouter>
+      <QueryClientProvider client={queryClient}>
+        <HashRouter>
+          <Background>
+            <NavBar />
+            <MainCard>
+              <Routes>
+                <Route path="/" element={<Navigate to="/list/add" />} />
+                <Route path="/list/add/*" element={<List />} />
+                <Route path="/recipes/*" element={<Recipes />} />
+                <Route path="/favorite" element={<Favorite />} />
+                <Route path="/setting" element={<Setting />} />
+              </Routes>
+            </MainCard>
+          </Background>
+        </HashRouter>
+      </QueryClientProvider>
     </StoreProvider>
   );
 };

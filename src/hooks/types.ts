@@ -1,17 +1,5 @@
-import { TList, TListItem, TFavRec, Theme, ThemeColors } from "../types";
+import { TFavRec, Theme, ThemeColors } from "../types";
 
-  export type TGlobalList = {
-    allLists?: TList[];
-    createNewList: (
-      listName: string,
-      listId?: string,
-      listItems?: TListItem[]
-    ) => void;
-    deleteList: (id: string) => void;
-    createListItems: (listId: string, updatedArr: TListItem) => void;
-    checkListItem: (id: string, listItem: TListItem) => void;
-    deleteListItem: (id: string, itemsToDelete: TListItem[]) => void;
-  }
 
   export type TGlobalRecipe = {
     favRecipes?:TFavRec[]
@@ -26,8 +14,7 @@ import { TList, TListItem, TFavRec, Theme, ThemeColors } from "../types";
   }
 
   export type GlobalStore = {
-    list: TGlobalList
-    recipes: TGlobalRecipe
+    recipes: TGlobalRecipe,
   };
 
 export enum DB_TYPES {

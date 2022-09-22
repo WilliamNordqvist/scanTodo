@@ -1,7 +1,8 @@
 import { Box } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { getRecipe } from "../../api/api";
+import { database, recipe } from "../../api/api";
 import { Button } from "../../components/button/button";
 import { Header } from "../../components/header/header";
 import { Check } from "../../components/icons/check";
@@ -10,82 +11,88 @@ import { Input } from "../../components/input/input";
 import { ListRow } from "../../components/listRow/listRow";
 import { Loading } from "../../components/loading/loading";
 import { Selector } from "../../components/selector/selector";
-import { useStore } from "../../context/context";
-import { TRecipe, TListItem } from "../../types";
+import { RawTlist, RawTlistFull, TRecipe, CacheData } from "../../types";
 import { generateId } from "../../utils/generateId";
 
-
-
 export const RecipeList: React.VFC = () => {
-  const { id: recipeId } = useParams<{ id: string }>();
-  const [recipe, setRecipe] = useState<TRecipe>();
-  const [inputValue, setInputValue] = useState<string>("");
-  const [ingredientsArr, setIngredients] = useState<string[]>([]);
-  const [checkedIngred, setCheckedIngred] = useState<string[]>([]);
+  const { id } = useParams();
+  const recipeId = id as string;
+  const [inputValue, setInputValue] = useState("");
+  const [checkedItems, setCheckedItems] = useState<string[]>([]);
+  const { data, refetch } = useQuery(
+    ["getRecipe", recipeId],
+    () => recipe.get(recipeId, portions),
+    {
+      onSuccess: (res) => setInputValue(res.Title),
+    }
+  );
+  const { data: isAlreadySaved, refetch: refetchIsAlreadySaved } = useQuery(
+    ["alreadySaved", id],
+    () => recipe.alreadySaved(recipeId)
+  );
+
   const [portions, setPortions] = useState("4");
-  const {
-    list: { createNewList },
-    recipes: { addFavRecipe, isRecAlreadyAdded },
-  } = useStore();
+  const { mutate: createList } = useMutation(database.createList);
+  const { mutate: deleteFavRec } = useMutation(recipe.delete);
+  const { mutate: saveFavorite } = useMutation(recipe.save);
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const hasCheckedItems = checkedIngred.length > 0;
-  const recAlreadyAdded = isRecAlreadyAdded(recipeId!);
+
+  useEffect(() => {
+    refetch();
+  }, [portions, refetch]);
+
+  if (!data) return <Loading />;
 
   const addNewRecipelist = () => {
     const listId = generateId();
-    const ingredientsToItems: TListItem[] = ingredientsArr!.map(
-      (item, index) => {
+    const { Title, Ingredients } = data;
+    const recipeToList: any[] | undefined = [Title, ...Ingredients]
+      .filter((item) => !checkedItems.includes(item))
+      .map((item, index) => {
         return {
-          name: item,
-          id: generateId() + index,
+          name: index === 0 ? data.Title : "",
+          items: index === 0 ? "" : item,
+          listId,
           isChecked: false,
+          itemId: generateId() + index,
         };
-      }
-    );
-    createNewList(inputValue, listId, ingredientsToItems);
+      });
 
-    navigate(`/list/add/${listId}`);
-  };
-
-  const deleteIngred = () => {
-    const ingredToDelete = new Set(checkedIngred);
-    const newArr = ingredientsArr.filter(
-      (ingredient) => !ingredToDelete.has(ingredient)
-    );
-    setIngredients(newArr);
-    setCheckedIngred([]);
-  };
-
-  const onCheckedItem = (ingredient: string) => {
-    if (checkedIngred.includes(ingredient)) {
-      const newArr = checkedIngred.filter((i) => i !== ingredient);
-      setCheckedIngred(newArr);
-      return null;
+    if (recipeToList) {
+      createList(recipeToList);
+      queryClient.setQueryData<CacheData>("allList", (oldData) => {
+        return [
+          ...(oldData || []),
+          {
+            [listId]: recipeToList,
+          },
+        ];
+      });
     }
 
-    setCheckedIngred([...checkedIngred, ingredient]);
+    navigate(`/list/add`);
   };
 
-  useEffect(() => {
-    const fetchRecipe = async () => {
-      if (!recipeId) return null;
-      const data = await getRecipe(recipeId, portions);
-      setRecipe(data);
-      setInputValue(data.Title || " ");
-      setIngredients(data.Ingredients!);
-    };
-    fetchRecipe();
-  }, [recipeId, portions]);
+  const addFavoriteRecipe = async () => {
+    if (isAlreadySaved) {
+      deleteFavRec(recipeId);
+      await refetchIsAlreadySaved();
+      return;
+    }
+    saveFavorite({
+      name: data.Title,
+      id: recipeId,
+    });
+  };
 
-  if (!recipe) return <Loading />;
-
-  if (recipe.ErrorMessage) {
-    return <Header as="h2">{recipe.ErrorMessage}</Header>;
+  if (data.ErrorMessage) {
+    return <Header as="h2">{data.ErrorMessage}</Header>;
   }
 
   return (
     <Box
-      height={"100%"}
+      height="100%"
       display="flex"
       flexDirection="column"
       justifyContent="space-between"
@@ -93,28 +100,31 @@ export const RecipeList: React.VFC = () => {
       <Box height="auto" overflow="scroll">
         <Header as="h2">Recipe ingredients</Header>
         <Box display="flex" justifyContent="center">
-          <StarIcon
-            intVal={recAlreadyAdded}
-            onClick={() => addFavRecipe({ name: inputValue, id: recipeId! })}
-          />
+          <StarIcon intVal={isAlreadySaved} onClick={addFavoriteRecipe} />
         </Box>
-        <Input value={inputValue} setValue={setInputValue} />
-        {recipe.PortionOptions && (
+        {inputValue && (
+          <Input value={inputValue || ""} setValue={setInputValue} />
+        )}
+        {data.PortionOptions && (
           <Box sx={{ py: 1 }}>
             <Selector
               value={portions}
               onChange={(e) => setPortions(e.target.value)}
               placeholder="Portions"
-              items={recipe.PortionOptions}
+              items={data.PortionOptions}
             />
           </Box>
         )}
 
         <Box component="ul" pl="0">
-          {ingredientsArr.map((ingredient: string) => (
+          {data.Ingredients.map((ingredient: string) => (
             <ListRow
               key={ingredient}
-              icon={<Check onClick={() => onCheckedItem(ingredient)} />}
+              icon={
+                <Check
+                  onClick={() => setCheckedItems([...checkedItems, ingredient])}
+                />
+              }
             >
               {ingredient}
             </ListRow>
@@ -122,28 +132,18 @@ export const RecipeList: React.VFC = () => {
         </Box>
       </Box>
       <Box sx={{ width: "100%", mx: "auto" }} mt={2}>
-        {hasCheckedItems && !recAlreadyAdded ? (
-          <Button buttontype="delete" onClick={deleteIngred}>
-            delete
-          </Button>
-        ) : (
-          <Box
-            display="flex"
-            flexDirection="row"
-            justifyContent="space-between"
-          >
-            <Box width="40%">
-              <Button
-                onClick={() => navigate(`/recipes/instructions/${recipeId}`)}
-              >
-                instructions
-              </Button>
-            </Box>
-            <Box width="40%">
-              <Button onClick={addNewRecipelist}>add list</Button>
-            </Box>
+        <Box display="flex" flexDirection="row" justifyContent="space-between">
+          <Box width="40%">
+            <Button
+              onClick={() => navigate(`/recipes/instructions/${recipeId}`)}
+            >
+              instructions
+            </Button>
           </Box>
-        )}
+          <Box width="40%">
+            <Button onClick={addNewRecipelist}>add list</Button>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

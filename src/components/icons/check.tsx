@@ -37,18 +37,19 @@ const CheckedIcon = styled(RadioButtonCheckedOutlinedIcon)`
   }
 `;
 
-export const Check: React.VFC<TIcon & { defVal?: boolean }> = ({
+export const Check: React.VFC<TIcon & { defVal?: boolean, isChecked?:boolean, onClick: () => void }> = ({
   onClick,
   defVal = false,
+  isChecked
 }) => {
-  const [isChecked, toggleCheck] = useState(defVal);
+  const [isCheckedTest, toggleCheck] = useState(isChecked || false);
   const onCheck = () => {
-    toggleCheck(!isChecked);
-    onClick()
+    toggleCheck(!isCheckedTest);
+     onClick()
   }
   return (
     <>
-      {isChecked ? (
+      {isCheckedTest ? (
         <CheckedIcon onClick={onCheck} />
       ) : (
         <CheckIcon onClick={onCheck} />
