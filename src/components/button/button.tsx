@@ -5,6 +5,7 @@ import styled, { css } from "styled-components";
 type TButton = {
   onClick: () => void;
   buttontype?: "primary" | "secondary" | "delete";
+  disabled?:boolean,
 };
 
 const StyledButton = styled(MUIButton)<{
@@ -48,6 +49,7 @@ export const Button: React.FC<TButton> = ({
   children,
   onClick,
   buttontype = "primary",
+  disabled = false,
 }) => {
   return (
     <StyledButton
@@ -55,6 +57,7 @@ export const Button: React.FC<TButton> = ({
       onClick={onClick}
       fullWidth
       variant="contained"
+      disabled={disabled}
     >
       {children}
     </StyledButton>
