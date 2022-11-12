@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CacheData, RawTlist, RawTlistFull, TProduct, TRecipe, TRecipeResponse, URL_TYPES } from '../types'
+import { CacheData, RawTlist, RawTlistFull, TFavorites, TProduct, TRecipe, TRecipeResponse, URL_TYPES } from '../types'
 
   const HTTP =  <T> (url:string): Promise<T> => {
     
@@ -35,22 +35,22 @@ export const database = {
     },
 
     getList: async (id:string):Promise<RawTlistFull[]> => {
-        const { data: response } = await axios.get(`${URL_TYPES.GOOGLE_SHEET}?id=${id}`)
+        const { data: response } = await axios.get(`${URL_TYPES.GOOGLE_SHEET}id=${id}`)
         return response
     },
     createList:async (data:RawTlistFull[]) => {
        await axios.post(URL_TYPES.GOOGLE_SHEET, JSON.stringify(data))
     },
     createListItem:  async (item:RawTlistFull) => {
-        await axios.post(`${URL_TYPES.GOOGLE_SHEET}?action=addItem`, JSON.stringify(item))
+        await axios.post(`${URL_TYPES.GOOGLE_SHEET}action=addItem`, JSON.stringify(item))
     },
     delete:async ({listId, itemId}: {listId?:number , itemId?:number[]}):Promise<RawTlist[][]> => {
-        const { data: response } = await axios.post(`${URL_TYPES.GOOGLE_SHEET}?action=delete` ,JSON.stringify({listId, itemId}))
+        const { data: response } = await axios.post(`${URL_TYPES.GOOGLE_SHEET}action=delete` ,JSON.stringify({listId, itemId}))
         return response
     },
 
     update: async (item:RawTlistFull) => {
-         await axios.post(`${URL_TYPES.GOOGLE_SHEET}?action=update`, JSON.stringify(item))
+         await axios.post(`${URL_TYPES.GOOGLE_SHEET}action=update`, JSON.stringify(item))
         
     },
 }
@@ -83,18 +83,23 @@ export const recipe = {
         }
      },
 
-     save: async ({name, id}:{name:string, id:string}) => {
-        await axios.post(`${URL_TYPES.GOOGLE_SHEET}?type=favorite`, JSON.stringify({name, id}))
+     getFavorites: async () => {
+        const { data: response } = await axios.get<TFavorites[]>(`${URL_TYPES.GOOGLE_SHEET}type=favorite`)
+        return response
+
      },
 
-     delete: async (id:string) => {
-        await axios.post(`${URL_TYPES.GOOGLE_SHEET}?type=favorite&action=delete`, JSON.stringify({id}))
+     save: async ({name, id}:{name:string, id:string}) => {
+        await axios.post(`${URL_TYPES.GOOGLE_SHEET}type=favorite`, JSON.stringify({name, id}))
+     },
+
+     delete: async (id:string[] | number[]) => {
+        await axios.post(`${URL_TYPES.GOOGLE_SHEET}type=favorite&action=delete`, JSON.stringify({id}))
      },
 
      alreadySaved: async (id:string):Promise<boolean> => {
-         const {data:response } = await axios.get<{alreadySaved:boolean}>(`${URL_TYPES.GOOGLE_SHEET}?exist=${id}`)
+         const {data:response } = await axios.get<{alreadySaved:boolean}>(`${URL_TYPES.GOOGLE_SHEET}type=exist&id=${id}`)
          return response.alreadySaved
      }
 }
-
 
