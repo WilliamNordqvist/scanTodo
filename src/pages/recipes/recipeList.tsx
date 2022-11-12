@@ -76,7 +76,7 @@ export const RecipeList: React.VFC = () => {
 
   const addFavoriteRecipe = async () => {
     if (isAlreadySaved) {
-      deleteFavRec(recipeId);
+      deleteFavRec([recipeId]);
       await refetchIsAlreadySaved();
       return;
     }
