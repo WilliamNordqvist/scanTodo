@@ -19,7 +19,7 @@ const Slider = styled(MobileStepper)`
   }
 `;
 
-const Instuction = styled(Typography)`
+const Instruction = styled(Typography)`
   padding: ${({ theme }) => theme.sizes.small};
   border: 2px solid ${({ theme }) => theme.color.primaryTextColor};
   border-radius: ${({ theme }) => theme.sizes.xsmall};
@@ -50,7 +50,7 @@ export const RecipeInstructions: React.VFC = () => {
             <Box mb={10}>
               <Header as="h2">Instructions</Header>
             </Box>
-            <Instuction
+            <Instruction
               align="center"
               dangerouslySetInnerHTML={{
                 __html: Instructions[index],
