@@ -157,5 +157,4 @@ export enum URL_TYPES {
     BASE = 'https://api.allorigins.win/get?url=',
     BAR_CODE = 'https://handla.api.ica.se/api/upclookup?upc=',
     RECIPE = 'https://handla.api.ica.se/api/recipes/recipe/',
-    GOOGLE_SHEET = 'https://script.google.com/macros/s/AKfycbxvVS7dsG9FDuSAcu-hFw4lxZiARL23cH-0ppyefck1-zB2rehYuiWrXv9Lzg55WmFF/exec?'
 }
