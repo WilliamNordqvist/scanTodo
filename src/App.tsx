@@ -8,13 +8,16 @@ import { StoreProvider } from "./context/context";
 import { NavBar } from "./components/navbar/Navbar";
 import { Background } from "./components/background/background";
 import { MainCard } from "./components/mainCard/mainCard";
-import { QueryClient, QueryClientProvider, useQuery } from "react-query";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from 'react-query/devtools'
+
 
 export const App: React.VFC = () => {
   const queryClient = new QueryClient();
   return (
     <StoreProvider>
       <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen={false} />
         <HashRouter>
           <Background>
             <NavBar />
