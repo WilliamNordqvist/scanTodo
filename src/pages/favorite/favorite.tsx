@@ -1,29 +1,20 @@
 import { List, Typography } from "@mui/material";
 import { Box } from "@mui/system";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { recipe } from "../../api/api";
 import { Button } from "../../components/button/button";
 import { Header } from "../../components/header/header";
 import { StarIcon } from "../../components/icons/starIcon";
 import { ListRowLink } from "../../components/listRow/listRow";
-import { useStore } from "../../context/context";
-import { TFavorites, TFavRec } from "../../types";
+import { TFavorites } from "../../types";
 
 export const Favorite: React.VFC = () => {
-  // const [favRemoveArr, setRemoveArr] = useState<TFavRec[]>([]);
   const [idToDelete, setIdToDelete] = useState<number[]>([])
   const { data } = useQuery("favorites", recipe.getFavorites);
   const { mutate: deleteFavRec } = useMutation(recipe.delete);
   const queryClient = useQueryClient();
   
-  // const {
-  //   recipes: { favRecipes, deleteFavRec },
-  // } = useStore();
-
-
-  
-
   return (
     <Box
       height={"100%"}

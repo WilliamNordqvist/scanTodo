@@ -1,43 +1,19 @@
-import React, { createContext, useContext, useState } from "react";
-import { ThemeProvider } from "styled-components";
-import { GlobalStore } from "../hooks/types";
-import { useRecipe } from "../hooks/useRecipe";
+import React from "react";
+import { ThemeProvider as StyledThemeProvider } from "styled-components";
 import { useStyles } from "../hooks/useStyles";
 
-const intState: GlobalStore = {
-  recipes:{
-    favRecipes:[],
-    addFavRecipe:() => {},
-    deleteFavRec:() => {},
-    isRecAlreadyAdded:() => false,
-  }
-};
 
-const GlobalContext: React.Context<GlobalStore> = createContext(intState);
-
-export const StoreProvider: React.FC = ({ children }) => {
-  const recipes = useRecipe();
-  const {theme, changeColor} = useStyles()
+export const ThemeProvider: React.FC = ({ children }) => {
+  const { theme, changeColor } = useStyles();
 
   return (
-    <GlobalContext.Provider
-      value={{
-        recipes
+    <StyledThemeProvider
+      theme={{
+        ...theme,
+        changeColor,
       }}
     >
-      <ThemeProvider
-        theme={{
-          ...theme,
-          changeColor
-        }}
-      >
-        {children}
-      </ThemeProvider>
-    </GlobalContext.Provider>
+      {children}
+    </StyledThemeProvider>
   );
-};
-
-export const useStore = () => {
-  const store = useContext(GlobalContext);
-  return store;
 };

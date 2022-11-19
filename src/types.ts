@@ -73,11 +73,6 @@ export type RawTlistFull = {
     itemId:number | string
 }
 
-  export type TFavRec = {
-    name:string,
-    id:string;
-  }
-
   export type CacheData = {
     [id:number]:RawTlist[]
   }[]

@@ -12,10 +12,10 @@ export const useStyles = ():TGlobalStyles => {
         const itemsRef = ref(database,DB_TYPES.THEME);    
         onValue(itemsRef, (snapshot:DataSnapshot) => {
             const dbTheme: Theme = snapshot.val()
+        
             if(dbTheme){
                 setTheme(dbTheme)
-            }
-            
+            }  
         })
 
     }, [])

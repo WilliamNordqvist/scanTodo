@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { AddIcon } from "../../components/icons/addIcon";
 import { Input } from "../../components/input/input";
 import { ListCard } from "../../components/listCard/listCard";
@@ -11,7 +11,7 @@ import { database } from "../../api/api";
 import { generateId } from "../../utils/generateId";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import { Loading } from "../../components/loading/loading";
-import { RawTlist, RawTlistFull } from "../../types";
+import { RawTlistFull } from "../../types";
 
 const SettingIcon = styled(Settings)`
   && {
@@ -27,7 +27,7 @@ const SettingIcon = styled(Settings)`
 export const CreateList: React.VFC = () => {
   const [newListName, setNewListName] = useState<string>("");
   const { mutate } = useMutation(database.createList);
-  const { data, isLoading, error } = useQuery("allList", database.getAllList, {
+  const { data, isLoading } = useQuery("allList", database.getAllList, {
     refetchOnMount: false,
   });
   const queryClient = useQueryClient();
@@ -35,7 +35,6 @@ export const CreateList: React.VFC = () => {
   if (isLoading) {
     return <Loading />;
   }
-  
 
   const addNewlist = () => {
     const listId = generateId();
