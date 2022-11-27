@@ -27,7 +27,10 @@ const SettingIcon = styled(Settings)`
 export const CreateList: React.VFC = () => {
   const [newListName, setNewListName] = useState<string>("");
   const { mutate } = useMutation(database.createList);
-  const { data, isLoading } = useQuery("allList", database.getAllList);
+  const { data, isLoading } = useQuery("allList", database.getAllList, {
+    staleTime: Infinity,
+    cacheTime: Infinity,
+  });
   const queryClient = useQueryClient();
 
   if (isLoading) {
