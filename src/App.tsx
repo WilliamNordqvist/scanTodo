@@ -14,8 +14,8 @@ import { ReactQueryDevtools } from "react-query/devtools";
 export const App: React.VFC = () => {
   const queryClient = new QueryClient();
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
         <ReactQueryDevtools initialIsOpen={false} />
         <HashRouter>
           <Background>
@@ -31,8 +31,8 @@ export const App: React.VFC = () => {
             </MainCard>
           </Background>
         </HashRouter>
-      </QueryClientProvider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 };
 

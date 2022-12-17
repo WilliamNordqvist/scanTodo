@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CacheData, RawTlist, RawTlistFull, TFavorites, TProduct, TRecipe, TRecipeResponse, URL_TYPES } from '../types'
+import { CacheData, ColorNames, RawTlist, RawTlistFull, TFavorites, ThemeColors, TProduct, TRecipe, TRecipeResponse, URL_TYPES } from '../types'
 
 const GOOGLE_SHEET = process.env.REACT_APP_URL as string
 
@@ -24,8 +24,16 @@ const GOOGLE_SHEET = process.env.REACT_APP_URL as string
     return "  "
 }
 
+export const theme = {
+    get:async () => {
+        const { data } = await axios.get<ThemeColors>(`${GOOGLE_SHEET}type=theme`)
+        return data
+    },
 
-
+    save:async (data:{name:ColorNames, newColor:string}[]) => {
+        await axios.post(`${GOOGLE_SHEET}type=theme`,JSON.stringify(data))
+    }
+}
 
 export const database = {
     getAllList:async ():Promise<CacheData> => {
@@ -55,6 +63,7 @@ export const database = {
          await axios.post(`${GOOGLE_SHEET}action=update`, JSON.stringify(item))
         
     },
+
 }
 
 
@@ -104,4 +113,6 @@ export const recipe = {
          return response.alreadySaved
      }
 }
+
+
 

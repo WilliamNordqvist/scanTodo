@@ -1,9 +1,10 @@
 import { Box, TextField as TextFieldImport } from "@mui/material";
-import React, { useContext, useState } from "react";
-import styled, { ThemeContext } from "styled-components";
+import React, { useState } from "react";
+import styled from "styled-components";
 import { Button } from "../../components/button/button";
 import { Header } from "../../components/header/header";
-import { ColorNames, ThemeColors } from "../../types";
+import { useStyles } from "../../hooks/useStyles";
+import { ColorNames } from "../../types";
 
 const TextField = styled(TextFieldImport)`
   text-transform: capitalize;
@@ -15,6 +16,7 @@ const TextField = styled(TextFieldImport)`
   }
 `;
 
+
 const Square = styled.div<{ color: string }>`
   background: ${({ color }) => color};
   width: ${({ theme }) => theme.sizes.medium};
@@ -25,35 +27,49 @@ const Square = styled.div<{ color: string }>`
 `;
 
 export const Setting: React.VFC = () => {
-  const styleContext = useContext(ThemeContext);
-  const { color: GlobalColors, changeColor } = styleContext;
-  const [newColors, setNewColor] = useState<ThemeColors>(GlobalColors);
+  // const { theme: {color: GlobalColors }}  = useThemes();
+  const { theme, changeColor } = useStyles();
 
-
+  const settingColors = Object.entries(theme.color).map((e) => ({
+    name: e[0],
+    color: e[1],
+    hasChanged: false,
+  }));
+  const [colors, setColors] = useState(settingColors);
+  
   return (
     <Box
-    height="100%"
-    display="flex"
-    flexDirection="column"
-    justifyContent="space-between"
+      height="100%"
+      display="flex"
+      flexDirection="column"
+      justifyContent="space-between"
     >
       <Box height="auto" overflow="scroll" mb={1}>
         <Header as="h2">Settings</Header>
         <form>
           <ul>
-            {Object.entries(newColors).map((colorItem) => {
-              const [colorName, hexCode] = colorItem as [ColorNames, string];
+            {colors.map(({ name, color }, i) => {
               return (
-                <Box key={colorName} display="flex" alignItems="center" component="li" mb={2}>
+                <Box
+                  key={name}
+                  display="flex"
+                  alignItems="center"
+                  component="li"
+                  mb={2}
+                >
                   <TextField
                     id="standard-textarea"
-                    label={colorName}
-                    value={hexCode}
+                    label={name}
+                    value={color}
                     size="small"
-                    onChange={(e) =>  setNewColor({...newColors, [colorName]: e.target.value})}
+                    onChange={(e) => {
+                      colors[i].color = e.target.value.trim();
+                      colors[i].hasChanged = true;
+                      setColors([...colors]);
+                    }}
                     fullWidth
                   />
-                  <Square color={hexCode} />
+                  <Square color={color} />
                 </Box>
               );
             })}
@@ -61,7 +77,15 @@ export const Setting: React.VFC = () => {
         </form>
       </Box>
       <Button
-        onClick={() => changeColor(newColors)}
+        onClick={() => {
+          const changed = colors
+            .filter((i) => i.hasChanged)
+            .map(({ name, color }) => ({
+              name: name as ColorNames,
+              newColor: color,
+            }));
+          changeColor(changed);
+        }}
       >
         SAVE
       </Button>

@@ -1,8 +1,8 @@
-import { Theme, ThemeColors } from "../types";
+import { ColorNames, Theme } from "../types";
 
   export type TGlobalStyles = {
     theme:Theme,
-    changeColor:(newColors:ThemeColors) => void;
+    changeColor:(newColors:{name:ColorNames, newColor:string}[]) => void;
   }  
 
 export enum DB_TYPES {
